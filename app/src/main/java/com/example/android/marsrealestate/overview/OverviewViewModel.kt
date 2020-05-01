@@ -36,11 +36,18 @@ import retrofit2.Response
 class OverviewViewModel : ViewModel() {
 
     // The internal MutableLiveData String that stores the status of the most recent request
-    private val _response = MutableLiveData<String>()
+    private val _status = MutableLiveData<String>()
 
     // The external immutable LiveData for the request status String
-    val response: LiveData<String>
-        get() = _response
+    val status: LiveData<String>
+        get() = _status
+
+    // internal, to store MarsProperty objects (converted from backed JSON)
+    private val _property = MutableLiveData<MarsProperty>()
+
+    // external version to pass to other files without risk of them mutating _property
+    val property: LiveData<MarsProperty>
+        get() = _property
 
     // set job and scope for coroutines
     private var viewModel = Job()
@@ -62,9 +69,12 @@ class OverviewViewModel : ViewModel() {
             var getPropertiesDeferred = MarsApi.retrofitService.getProperties() // returns deferred
             try {
                 var listResult = getPropertiesDeferred.await() // non-blocking async call
-                _response.value = "Success ${listResult.size} Mars properties retrieved"
+                if (listResult.isNotEmpty()) {
+                    _property.value = listResult[0] // fetches first MarsProperty object
+                }
+                _status.value = "Success ${listResult.size} Mars properties retrieved"
             } catch (t: Throwable) {
-                _response.value = "Failure: " + t.message
+                _status.value = "Failure: " + t.message
             }
         }
     }
