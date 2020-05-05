@@ -43,10 +43,10 @@ class OverviewViewModel : ViewModel() {
         get() = _status
 
     // internal, to store MarsProperty objects (converted from backed JSON)
-    private val _property = MutableLiveData<MarsProperty>()
+    private val _property = MutableLiveData<List<MarsProperty>>()
 
     // external version to pass to other files without risk of them mutating _property
-    val property: LiveData<MarsProperty>
+    val property: LiveData<List<MarsProperty>>
         get() = _property
 
     // set job and scope for coroutines
@@ -70,7 +70,7 @@ class OverviewViewModel : ViewModel() {
             try {
                 var listResult = getPropertiesDeferred.await() // non-blocking async call
                 if (listResult.isNotEmpty()) {
-                    _property.value = listResult[0] // fetches first MarsProperty object
+                    _property.value = listResult // fetches entire list of MarsProperty objects
                 }
                 _status.value = "Success ${listResult.size} Mars properties retrieved"
             } catch (t: Throwable) {
