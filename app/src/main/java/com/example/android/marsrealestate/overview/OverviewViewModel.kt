@@ -30,16 +30,18 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
+enum class MarsApiStatus { LOADING, ERROR, DONE }
+
 /**
  * The [ViewModel] that is attached to the [OverviewFragment].
  */
 class OverviewViewModel : ViewModel() {
 
     // The internal MutableLiveData String that stores the status of the most recent request
-    private val _status = MutableLiveData<String>()
+    private val _status = MutableLiveData<MarsApiStatus>()
 
     // The external immutable LiveData for the request status String
-    val status: LiveData<String>
+    val status: LiveData<MarsApiStatus>
         get() = _status
 
     // internal, to store MarsProperty objects (converted from backed JSON)
@@ -66,15 +68,15 @@ class OverviewViewModel : ViewModel() {
      */
     private fun getMarsRealEstateProperties() {
         coroutineScope.launch {
-            var getPropertiesDeferred = MarsApi.retrofitService.getProperties() // returns deferred
+            val getPropertiesDeferred = MarsApi.retrofitService.getProperties() // returns deferred
             try {
-                var listResult = getPropertiesDeferred.await() // non-blocking async call
-                if (listResult.isNotEmpty()) {
-                    _property.value = listResult // fetches entire list of MarsProperty objects
-                }
-                _status.value = "Success ${listResult.size} Mars properties retrieved"
+                _status.value = MarsApiStatus.LOADING
+                val listResult = getPropertiesDeferred.await() // non-blocking async call
+                _status.value = MarsApiStatus.DONE
+                _property.value = listResult // fetches entire list of MarsProperty objects
             } catch (t: Throwable) {
-                _status.value = "Failure: " + t.message
+                _status.value = MarsApiStatus.ERROR
+                _property.value = ArrayList() // empties list of properties if error occurs
             }
         }
     }
