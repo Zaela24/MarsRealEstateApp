@@ -51,6 +51,11 @@ class OverviewViewModel : ViewModel() {
     val property: LiveData<List<MarsProperty>>
         get() = _property
 
+    private val _navigateToSelectedProperty = MutableLiveData<MarsProperty>()
+
+    val navigateToSelectedProperty: LiveData<MarsProperty>
+        get() = _navigateToSelectedProperty
+
     // set job and scope for coroutines
     private var viewModel = Job()
     // Retrofit does all work on a background thread, thus using main thread here:
@@ -85,5 +90,14 @@ class OverviewViewModel : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         viewModel.cancel()
+    }
+
+    // public fun to help handle logic when images in grid are clicked
+    fun displayPropertyDetails(marsProperty: MarsProperty) {
+        _navigateToSelectedProperty.value = marsProperty
+    }
+
+    fun displayPropertyDetailsComplete() {
+        _navigateToSelectedProperty.value = null
     }
 }
